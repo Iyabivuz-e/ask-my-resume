@@ -10,6 +10,11 @@ dependencies = [
     "langchain>=1.2.3",
     "langchain-community>=0.4.1",
     "langchain-core>=1.2.7",
+    "langchain-text-splitters>=1.1.0",
+    "pdfminer>=20191125",
+    "pypdf>=6.6.0",
     "python-dotenv>=1.2.1",
+    "sentence-transformers>=5.2.0",
+    "unstructured[all,pdf]>=0.18.27",
     "uvicorn>=0.40.0",
 ]
