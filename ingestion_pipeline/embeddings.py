@@ -1,7 +1,7 @@
 
 import uuid
 from sentence_transformers import SentenceTransformer
-from chromadb import Client, PersistentClient
+from chromadb import PersistentClient
 import os
 from typing import List, Any
 import numpy as np
@@ -11,11 +11,16 @@ class Embeddings:
         self.model_name = model_name
         self.model = SentenceTransformer(self.model_name)
     
-    def generate_embeddings(self, documents: list[str]):
-        print("Embeddings generating start......!")
-        texts = [doc.page_content for doc in documents]
+    def generate_embeddings(self, documents: list[Any]) -> np.ndarray:
+        if not documents:
+            return np.array([])
+            
+        if isinstance(documents[0], str):
+            texts = documents
+        else:
+            texts = [doc.page_content for doc in documents]
+            
         embeddings = self.model.encode(texts)
-        print(f"Embeddings generated successfully: {len(embeddings)}")
         return embeddings
     
 
