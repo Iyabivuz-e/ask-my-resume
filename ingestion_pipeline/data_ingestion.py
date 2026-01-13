@@ -23,7 +23,7 @@ class DataIngestion:
             length_function = len,
             separators =["\n\n", "\n", " ", ""],
         )
-
+        
         chunks = text_splitter.split_documents(self.documents)
         return chunks
     
