@@ -10,3 +10,4 @@ unstructured
 pdfminer
 langchain-text-splitters
 sentence-transformers
+langchain-groq

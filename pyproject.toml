@@ -10,6 +10,7 @@ dependencies = [
     "langchain>=1.2.3",
     "langchain-community>=0.4.1",
     "langchain-core>=1.2.7",
+    "langchain-groq>=1.1.1",
     "langchain-text-splitters>=1.1.0",
     "pdfminer>=20191125",
     "pypdf>=6.6.0",

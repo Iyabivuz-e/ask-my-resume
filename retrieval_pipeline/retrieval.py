@@ -1,4 +1,14 @@
+from asyncio import timeout
 from ingestion_pipeline.embeddings import Embeddings, VectorStore
+from langchain_groq import ChatGroq
+import os
+import dotenv
+
+dotenv.load_dotenv()
+
+if "GROQ_API_KEY" not in os.environ:
+    raise ValueError("GROQ_API_KEY not found in the environment variables") 
+
 
 class RetrievalPipeline:
     def __init__(self, vector_store: VectorStore, embeddings: Embeddings):
@@ -6,11 +16,9 @@ class RetrievalPipeline:
         self.embeddings = embeddings
 
     def retrieve(self, query: str, top_k: int = 5, score_threshold: float = 0.0):
-        print(f"Retrieving documents based on the user query: {query}")
 
         ## we generate embeddings for the query
         query_embeddings = self.embeddings.generate_embeddings([query])[0]
-        print(f"Query embeddings generated successfully!")
 
         ## we retrieve the documents from the vector store
         try:
@@ -19,7 +27,6 @@ class RetrievalPipeline:
                 n_results = top_k,
                 include = ["metadatas", "distances", "documents", "embeddings"],
             )
-            print(f"Documents retrieved successfully!")
             
             ## We then process the retrieved documents and calculate the score
 
@@ -43,8 +50,6 @@ class RetrievalPipeline:
                             "score": score,
                             "rank": i + 1,
                         })
-                print(f"Documents retrieved successfully! {len(retrieved_docs)} documents retrieved.")
-                print(retrieved_docs[0]["document"])
                 return retrieved_docs
             
         except Exception as e:
@@ -52,4 +57,36 @@ class RetrievalPipeline:
 
 
 class LLMRetrieval:
-    
+    def __init__(self, model_name: str = "qwen/qwen3-32b"):
+        self.model_name = model_name
+        self.llm = ChatGroq(
+            model_name = self.model_name,
+            temperature = 0,
+            timeout = None,
+            max_retries = 2,
+            reasoning_format="hidden" 
+        )    
+
+    def generate_response(self, query: str, retrieved_docs: list[dict]):
+
+        try:
+            messages = [
+                {"role": "system", 
+                "content":( 
+                "You are a helpful HR assistant specialized in CV and Resume analysis."
+                "Use the retrieved documents to answer the user query."
+                "If the answer is not in the context, say you don't know.")
+                },
+
+                {"role": "user", 
+                f"content":(
+                    f"Context:\n{retrieved_docs}\n\n"
+                    f"User query:\n{query}"
+                )},
+            ]
+            
+            response = self.llm.invoke(messages)
+            return response.content
+        except Exception as e:
+            print(f"Error generating response: {e}")    
+            return None

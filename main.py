@@ -1,9 +1,11 @@
 from ingestion_pipeline.data_ingestion import DataIngestion
 from ingestion_pipeline.embeddings import Embeddings, VectorStore
-from retrieval_pipeline.retrieval import RetrievalPipeline
+from retrieval_pipeline.retrieval import RetrievalPipeline, LLMRetrieval
+
 
 def main():
-    print("Hello from ask-my-cv!")
+    
+    user_query = "What is my name?"
 
     data_ingestion = DataIngestion("./data/Resume1.pdf")
     chunks = data_ingestion.chunck_text()
@@ -15,7 +17,11 @@ def main():
     vector_store.add_embeddings_to_collection(chunks, embeddings_list)
 
     retrieval = RetrievalPipeline(vector_store, myembeddings)
-    retrieval.retrieve("What is my name?")
+    retrieved_docs = retrieval.retrieve(user_query)
+
+    llm_retrieval = LLMRetrieval()
+    llm_retrieval.generate_response(user_query, retrieved_docs)
+
 
     print("Data ingestion completed successfully!")
 
