@@ -158,5 +158,4 @@ class RetrievalWithCitations(LLMRetrieval):
                 "sources": retrieved_docs
             }
         except Exception as e:
-            print(f"Error generating response: {e}")    
-            return None
+            raise RuntimeError(f"Error generating response: {e}")    

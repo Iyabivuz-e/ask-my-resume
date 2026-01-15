@@ -1,7 +1,6 @@
 from ingestion_pipeline.embeddings import Embeddings, VectorStore
 from retrieval_pipeline.retrieval import RetrievalPipeline, LLMRetrieval, RetrievalWithCitations
 import streamlit as st
-import os
 
 def main():
 
@@ -39,6 +38,10 @@ def main():
                 retrieval, llm_retrieval = load_resources()
                 retrieved_docs = retrieval.retrieve(prompt)
                 response = llm_retrieval.generate_response(prompt, retrieved_docs)
+
+                if response is None:
+                    st.error("Failed to generate response... check the logs")
+                    st.stop()
 
                 answer = response["answer"]
                 references = response["sources"]
