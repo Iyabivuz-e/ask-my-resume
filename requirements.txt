@@ -11,3 +11,5 @@ pdfminer
 langchain-text-splitters
 sentence-transformers
 langchain-groq
+streamlit
+watchdog

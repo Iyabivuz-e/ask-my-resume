@@ -16,6 +16,8 @@ dependencies = [
     "pypdf>=6.6.0",
     "python-dotenv>=1.2.1",
     "sentence-transformers>=5.2.0",
+    "streamlit>=1.53.0",
     "unstructured[all,pdf]>=0.18.27",
     "uvicorn>=0.40.0",
+    "watchdog>=6.0.0",
 ]

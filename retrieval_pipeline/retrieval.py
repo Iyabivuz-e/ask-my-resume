@@ -3,6 +3,7 @@ from ingestion_pipeline.embeddings import Embeddings, VectorStore
 from langchain_groq import ChatGroq
 import os
 import dotenv
+from typing import List, Any
 
 dotenv.load_dotenv()
 
@@ -29,7 +30,6 @@ class RetrievalPipeline:
             )
             
             ## We then process the retrieved documents and calculate the score
-
             retrieved_docs = []
 
             if results["documents"] and results["documents"][0]:
@@ -57,11 +57,11 @@ class RetrievalPipeline:
 
 
 class LLMRetrieval:
-    def __init__(self, model_name: str = "qwen/qwen3-32b"):
+    def __init__(self, model_name: str = "openai/gpt-oss-120b"):
         self.model_name = model_name
         self.llm = ChatGroq(
             model_name = self.model_name,
-            temperature = 0,
+            temperature = 0.0,
             timeout = None,
             max_retries = 2,
             reasoning_format="hidden" 
@@ -73,7 +73,7 @@ class LLMRetrieval:
             messages = [
                 {"role": "system", 
                 "content":( 
-                "You are a helpful HR assistant specialized in CV and Resume analysis."
+                "You are ONLY a helpful HR assistant specialized in CV and Resume analysis."
                 "Use the retrieved documents to answer the user query."
                 "If the answer is not in the context, say you don't know.")
                 },
@@ -83,6 +83,73 @@ class LLMRetrieval:
                     f"Context:\n{retrieved_docs}\n\n"
                     f"User query:\n{query}"
                 )},
+            ]
+            
+            response = self.llm.invoke(messages)
+            return response.content
+        except Exception as e:
+            print(f"Error generating response: {e}")    
+            return None
+
+
+class RetrievalWithCitations(LLMRetrieval):
+    def __init__(self, model_name: str = "openai/gpt-oss-120b"):
+        super().__init__(model_name)
+
+    def format_retrieved_docs(self, retrieved_docs: list[Any]):
+        context_list = []
+        refs = []
+
+        for i, doc in enumerate(retrieved_docs, start=1):
+            context_list.append(f"[DOC {i}]\n{doc['document']}\n")
+            refs.append(
+                f"DOC {i}:\n"
+                f"doc_id: {doc['id']}\n"
+                f"Source: {doc['metadata']['source']}\n" 
+                f"Page: {doc['metadata']['page_label']}\n"
+                f"Score: {doc['score']}\n"
+            )
+
+        context = "\n".join(context_list)
+        references = "\n".join(refs)
+        print(f"Context: {context}")
+        print(f"References: {references}")
+
+        return context, references
+
+
+    def generate_response(self, query: str, retrieved_docs: list[dict]):
+
+        try:
+            context, references = self.format_retrieved_docs(retrieved_docs)
+            messages = [
+                {"role": "system", 
+                "content": 
+                """You are a strict question-answering system.
+                Rules:
+                - Answer ONLY the question asked.
+                - If the answer is not explicitly stated in the context, reply with: "I don't know."
+                - Do not summarize.
+                - Do not add extra information.
+                - Quote the exact answer when possible.
+                - Cite the document like [DOC X].
+                """
+                },
+
+                {"role": "user", "content": f"""
+                        Use ONLY the CONTEXT to answer the question.
+                        Cite sources using [DOC X].
+                        If the answer is not explicitly present, say: I don't know.
+
+                        === CONTEXT ===
+                        {context}
+
+                        === REFERENCES ===
+                        {references}
+
+                        Question: {query}
+                        """}
+
             ]
             
             response = self.llm.invoke(messages)

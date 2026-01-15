@@ -5,6 +5,7 @@ from chromadb import PersistentClient
 import os
 from typing import List, Any
 import numpy as np
+import hashlib
 
 class Embeddings:
     def __init__(self, model_name: str = "all-MiniLM-L6-v2"):
@@ -47,18 +48,21 @@ class VectorStore:
         idx = []
         document_list = []
         embedding_list = []
+        metadata_list = []
 
         print("Adding embeddings to collection...")
         for i, (doc, embedding) in enumerate(zip(documents, embeddings)):
-            doc_id = f"doc_{uuid.uuid4()}_ {i}"
+            doc_id = f"{hashlib.sha256(doc.metadata["source"].encode("utf-8")).hexdigest()}_{i}"
             idx.append(doc_id)
             document_list.append(doc.page_content)
+            metadata_list.append(doc.metadata)
             embedding_list.append(embedding)
         
         try:
             self.collection.upsert(
                 documents = document_list,
                 embeddings = embedding_list,
+                metadatas = metadata_list,
                 ids = idx,
             )
             print("Embeddings added to collection successfully!")   

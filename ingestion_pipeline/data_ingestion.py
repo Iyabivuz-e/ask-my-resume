@@ -4,7 +4,7 @@ from langchain_community.document_loaders import PyPDFLoader, UnstructuredPDFLoa
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 class DataIngestion:
-    def __init__(self, pdf_path: str, chunk_size: int = 500, chunk_overlap: int = 70):
+    def __init__(self, pdf_path: str, chunk_size: int = 1000, chunk_overlap: int = 200):
         self.pdf_path = pdf_path
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
