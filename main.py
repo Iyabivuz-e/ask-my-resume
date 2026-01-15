@@ -37,7 +37,7 @@ def main():
         with st.chat_message("assistant"):
             with st.spinner("Analyzing the resume..."):
                 retrieval, llm_retrieval = load_resources()
-                retrieved_docs = retrieval.retrieve(prompt)[:3]
+                retrieved_docs = retrieval.retrieve(prompt)
                 response = llm_retrieval.generate_response(prompt, retrieved_docs)
 
                 answer = response["answer"]
