@@ -111,17 +111,17 @@ class RetrievalWithCitations(LLMRetrieval):
             )
 
         context = "\n".join(context_list)
-        references = "\n".join(refs)
-        print(f"Context: {context}")
-        print(f"References: {references}")
+        reference_for_llm = "\n".join(refs)
+        # print(f"Context: {context}")
+        # print(f"References: {references}")
 
-        return context, references
+        return context, reference_for_llm
 
 
     def generate_response(self, query: str, retrieved_docs: list[dict]):
 
         try:
-            context, references = self.format_retrieved_docs(retrieved_docs)
+            context, reference_for_llm = self.format_retrieved_docs(retrieved_docs)
             messages = [
                 {"role": "system", 
                 "content": 
@@ -145,7 +145,7 @@ class RetrievalWithCitations(LLMRetrieval):
                         {context}
 
                         === REFERENCES ===
-                        {references}
+                        {reference_for_llm}
 
                         Question: {query}
                         """}
@@ -153,7 +153,10 @@ class RetrievalWithCitations(LLMRetrieval):
             ]
             
             response = self.llm.invoke(messages)
-            return response.content
+            return {
+                "answer": response.content,
+                "sources": retrieved_docs
+            }
         except Exception as e:
             print(f"Error generating response: {e}")    
             return None

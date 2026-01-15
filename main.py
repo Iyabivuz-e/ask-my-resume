@@ -39,8 +39,26 @@ def main():
                 retrieval, llm_retrieval = load_resources()
                 retrieved_docs = retrieval.retrieve(prompt)[:3]
                 response = llm_retrieval.generate_response(prompt, retrieved_docs)
-                st.markdown(response)
-        st.session_state.messages.append({"role": "assistant", "content": response})
+
+                answer = response["answer"]
+                references = response["sources"]
+
+
+                st.markdown(f"**{answer}**")
+                with st.expander("Sources"):
+                    if not isinstance(references, list):
+                        st.error("References format is invalid")
+                        st.stop()
+
+                    for i, doc in enumerate(references, start=1):
+                        st.markdown(
+                             f"""
+                            **DOC {i}**  
+                            **Source:** {doc["metadata"]["source"]}  
+                            **Page:** {doc["metadata"]["page_label"]}  
+                            """
+                        )
+        st.session_state.messages.append({"role": "assistant", "content": answer})
 
     with st.sidebar:
         st.header("Debug Info")
@@ -48,10 +66,10 @@ def main():
             st.session_state.messages = []
             st.rerun()
 
-    
 
-                
-    
+
+
+# #### CLI version
     # vector_store = VectorStore()
     # myembeddings = Embeddings()
 
@@ -59,15 +77,15 @@ def main():
     # llm_retrieval = LLMRetrieval()
     # llm_retrieval = RetrievalWithCitations()
 
-    ## Interaction loop
-#     while True:
-#         user_query = input("\nAsk (type 'q' to quit): ")
-#         if user_query.lower() == "q" or user_query.lower() == "quit":
-#             break
+    # # Interaction loop
+    # while True:
+    #     user_query = input("\nAsk (type 'q' to quit): ")
+    #     if user_query.lower() == "q" or user_query.lower() == "quit":
+    #         break
         
-#         retrieved_docs = retrieval.retrieve(user_query)[:3]
-#         response = llm_retrieval.generate_response(user_query, retrieved_docs)
-#         print("\nAssistant:", response)
+    #     retrieved_docs = retrieval.retrieve(user_query)[:3]
+    #     response = llm_retrieval.generate_response(user_query, retrieved_docs)
+    #     print("\nAssistant:", response)
 
 
 if __name__ == "__main__":
