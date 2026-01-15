@@ -42,11 +42,11 @@ def main():
                 st.markdown(response)
         st.session_state.messages.append({"role": "assistant", "content": response})
 
-        with st.sidebar:
-            st.header("Debug Info")
-            if st.button("Clear Chat History"):
-                st.session_state.messages = []
-                st.rerun()
+    with st.sidebar:
+        st.header("Debug Info")
+        if st.button("Clear Chat History"):
+            st.session_state.messages = []
+            st.rerun()
 
     
 
